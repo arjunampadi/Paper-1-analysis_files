@@ -29,6 +29,7 @@ from scipy import fftpack
 import matplotlib
 from matplotlib import rc
 
+# Setting font size
 fontsize = 30
 rc('font', **{'family':'serif', 'serif':['Times'], 'size': fontsize})
 rc('pdf', fonttype=42)
