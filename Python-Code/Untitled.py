@@ -3,7 +3,7 @@
 
 # # Imports
 
-# In[21]:
+# In[1]:
 
 
 import sys
@@ -19,6 +19,8 @@ import pandas as pd
 from scipy import signal
 from scipy.optimize import curve_fit
 from scipy import fftpack
+import re, csv, math
+import itertools
 
 
 # # Matplotlib Settings
@@ -41,7 +43,27 @@ markers = ['o', '^', 's', 'v','>','<','1','2','3','8']
 colors = ['k', 'r', 'steelblue','mediumseagreen','b','g','c','m','y','w']
 
 
-# In[2]:
+# # Data reading and splitting
+
+# In[73]:
+
+
+def avedata(file_name):
+    VAL = np.loadtxt(file_name, dtype = int,skiprows=3,max_rows=1)
+    maxrows = VAL[1]
+    a = 4
+    bindat = np.loadtxt(file_name, dtype = float,skiprows=a,max_rows=int(maxrows))[:,[0,1,2]]
+    sum_dat =[]
+    for i in range(5):
+        VAL1 = np.loadtxt(file_name, dtype = float,skiprows=a,max_rows=int(maxrows))[:,3].reshape(maxrows,1)
+        sum_dat.append(VAL1)
+        a += maxrows+1
+    ave_dat = np.sum(sum_dat,axis=0)/5
+    bindat=np.append(bindat, ave_dat, axis=1)
+    return bindat
+
+
+# In[74]:
 
 
 pot = 1
@@ -57,7 +79,7 @@ K_real2SI=A2m*A2m*avaga*fs2s/(kCal2Joule)  #kapitza
 K_real2SIcond=kCal2Joule/(avaga*fs2s*A2m)  #conductivity
 
 
-# In[10]:
+# In[75]:
 
 
 def SmoothGrad(x_left, T_graL, x_mid, Tw, x_right, T_graR,x_leftfull,x_midfull,x_rightfull):
@@ -77,7 +99,7 @@ def SmoothGrad(x_left, T_graL, x_mid, Tw, x_right, T_graR,x_leftfull,x_midfull,x
     return L,M,R,Lfull,Mfull,Rfull
 
 
-# In[11]:
+# In[76]:
 
 
 def cutXT2(x_left, T_graL, x_mid, Tw, x_right, T_graR):
@@ -102,7 +124,7 @@ def cutXT2(x_left, T_graL, x_mid, Tw, x_right, T_graR):
     return x_left, T_graL, x_mid, Tw, x_right, T_graR
 
 
-# In[12]:
+# In[77]:
 
 
 def calcThermal(x_left, T_graL, x_mid, Tw, x_right, T_graR,Q_flux):
@@ -132,14 +154,14 @@ def calcThermal(x_left, T_graL, x_mid, Tw, x_right, T_graR,Q_flux):
     return k_graL,k_W,k_graR,G_L,G_R 
 
 
-# In[19]:
+# In[78]:
 
 
-diranl="/home/arjun/Documents/TUTORIALS_LAMMPS/ionic_liquuid/binary_mixtures/IL_NEMD_DT/IL_models/EMIM/emim-bf4-tfsi/charged_system/NEMD/Normal/"
-conrange= [0,100,200,300,400]
+diranl="/home/arjun/Documents/TUTORIALS_LAMMPS/ionic_liquuid/binary_mixtures/IL_NEMD_DT/IL_models/EMIM/emim-bf4-tfsi_airebo/NEMD"
+conrange= [0,100,300,400]
 trange= [350]
-crange=[0.1,0.2,0.3,0.4,0.5,0.6]
-iruns = [1]
+crange=[0,0.1]
+iruns = [2]
 kap=[]
 denpeakL=[]
 denpeakR=[]
@@ -166,7 +188,7 @@ for con in conrange:
         for irun in iruns:
             T=350
             print(con,T,c)
-            heat=np.loadtxt(diranl+str(c)+'/bf_'+str(con)+'/heatflux.'+str(irun)+"."+str(T)+".dat")
+            heat=np.loadtxt(diranl+'/bf_'+str(con)+'/'+str(c)+'/heatflux.'+str(irun)+"."+str(T)+".dat")
             #heat=np.loadtxt(diranl+str(c)+'/bf_'+str(con)+'/heatfluxfull.'+str(irun)+"."+str(T)+".dat")
            # print(heat[4999][0],heat[3999][0])
             #print(heat[4999][1],heat[3999][1])
@@ -180,22 +202,22 @@ for con in conrange:
             print(Q_flux)
             Q.append(Q_flux)
             
-            datafluid=np.loadtxt(diranl+str(c)+'/bf_'+str(con)+'/temp_fluid.'+str(irun)+"."+str(T)+".profile",skiprows=4)
+            datafluid=avedata(diranl+'/bf_'+str(con)+'/'+str(c)+'/temp_fluid.'+str(irun)+"."+str(T)+".profile")
 #datafluid=np.loadtxt(diranl+'tmp_water.profile',skiprows=4)
             tempfluid=datafluid[:,3]
             Tfluid.append(tempfluid)
            # print(Tfluid)
-            dataleft=np.loadtxt(diranl+str(c)+'/bf_'+str(con)+'/temp_gnc_left.'+str(irun)+"."+str(T)+".profile",skiprows=4)
+            dataleft=avedata(diranl+'/bf_'+str(con)+'/'+str(c)+'/temp_gnc_left.'+str(irun)+"."+str(T)+".profile")
 #dataleft=np.loadtxt(diranl+'tmp_gnc_left.profile',skiprows=4)
             templeft=dataleft[:,3]
             Tleft.append(templeft)
-            dataright=np.loadtxt(diranl+str(c)+'/bf_'+str(con)+'/temp_gnc_right.'+str(irun)+"."+str(T)+".profile",skiprows=4)
+            dataright=avedata(diranl+'/bf_'+str(con)+'/'+str(c)+'/temp_gnc_right.'+str(irun)+"."+str(T)+".profile")
 #dataright=np.loadtxt(diranl+'tmp_gnc_right.profile',skiprows=4)
             tempright=dataright[:,3]
             wall = dataright[:,1][0]
             Tright.append(tempright)
         
-            denfluid=np.loadtxt(diranl+str(c)+'/bf_'+str(con)+'/dens_fluid.'+str(irun)+"."+str(T)+".profile",skiprows=4)
+            denfluid=avedata(diranl+'/bf_'+str(con)+'/'+str(c)+'/dens_fluid.'+str(irun)+"."+str(T)+".profile")
 #datafluid=np.loadtxt(diranl+'tmp_water.profile',skiprows=4)
             density=denfluid[:,3]
             den.append(density)   
@@ -214,7 +236,7 @@ for con in conrange:
         zden = denfluid[:,1]
         zcord=np.concatenate([zleft,zfluid,zright],axis=0)
         temp=np.concatenate([templeft,tempfluid,tempright],axis=0)
-        result="~/Documents/TUTORIALS_LAMMPS/ionic_liquuid/binary_mixtures/IL_NEMD_DT/IL_models/EMIM/emim-bf4-tfsi/charged_system/NEMD/NEMD_RESULTS/"
+        result="/home/arjun/Documents/TUTORIALS_LAMMPS/ionic_liquuid/binary_mixtures/IL_NEMD_DT/IL_models/EMIM/emim-bf4-tfsi_airebo/NEMD/NEMD_RESULTS/"
         directory = result
         parent_dir = "bf="+str(con)+'/c='+str(c)
         path = os.path.join(directory , parent_dir)
@@ -314,10 +336,10 @@ for con in conrange:
         axis[0].set_ylabel("Temperature $(k)$",fontweight = 'bold',fontsize=12)
         axis[1].set_ylabel("Mass density $(kg/m^3)$",fontweight = 'bold',fontsize=12)
         extent = axis[0].get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-        plt.savefig(diranl+str(c)+'/bf_'+str(con)+'temp_pr'+str(c)+'.'+str(con)+'.png',dpi=600, bbox_inches=extent.expanded(1.25, 1.3))
+        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+'temp_pr'+str(c)+'.'+str(con)+'.png',dpi=600, bbox_inches=extent.expanded(1.25, 1.3))
         extent = axis[1].get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-        plt.savefig(diranl+str(c)+'/bf_'+str(con)+'dens_pro'+str(c)+'.'+str(con)+'.png',dpi=600, bbox_inches=extent.expanded(1.25, 1.3))        
-        plt.savefig(diranl+str(c)+'/bf_'+str(con)+"fig"+str(c)+'.'+str(con)+'.png')
+        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+'dens_pro'+str(c)+'.'+str(con)+'.png',dpi=600, bbox_inches=extent.expanded(1.25, 1.3))        
+        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+"fig"+str(c)+'.'+str(con)+'.png')
         plt.show()
         plt.close()
 #print(kap,kleft,kright,denpeakL,denpeakLz,denpeakR,denpeakRz,bulkden,Qnet)
@@ -328,7 +350,7 @@ np.savetxt('K_vs_molarity.dat',KvsM,header='Charge BF k_left k_right')
 
 # ## 1. TBR vs Surface Charge of Carbon atoms
 
-# In[64]:
+# In[81]:
 
 
 fig, ax = plt.subplots()
@@ -337,6 +359,7 @@ for con in conrange:
     data = pd.read_csv("K_vs_charge.dat",sep='\s+',header=None)
     data = pd.DataFrame(data)
     select_con = data.loc[data.iloc[:,0] == con]
+    print(select_con)
     x = select_con[1]
     y1 = select_con[2]
     y2 = select_con[3]    
@@ -350,7 +373,7 @@ for con in conrange:
 
 # ## 2. TBR vs Mixture Ratio
 
-# In[63]:
+# In[79]:
 
 
 crange=[0.1,0.2,0.3,0.4,0.5,0.6]
