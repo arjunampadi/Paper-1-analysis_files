@@ -25,27 +25,23 @@ import itertools
 
 # # Matplotlib Settings
 
-# In[ ]:
-
-
-import matplotlib
-from matplotlib import rc
-
-# Setting font size
-fontsize = 30
-rc('font', **{'family':'serif', 'serif':['Times'], 'size': fontsize})
-rc('pdf', fonttype=42)
-rc('text', usetex=True)
-params = {'axes.labelsize': fontsize,'axes.titlesize':fontsize, 'legend.fontsize': fontsize, 'xtick.labelsize': fontsize, 'ytick.labelsize': fontsize}
-matplotlib.rcParams.update(params)
-pot = 1
-markers = ['o', '^', 's', 'v','>','<','1','2','3','8']
-colors = ['k', 'r', 'steelblue','mediumseagreen','b','g','c','m','y','w']
-
+# import matplotlib
+# from matplotlib import rc
+# 
+# # Setting font size
+# fontsize = 30
+# rc('font', **{'family':'serif', 'serif':['Times'], 'size': fontsize})
+# rc('pdf', fonttype=42)
+# rc('text', usetex=True)
+# params = {'axes.labelsize': fontsize,'axes.titlesize':fontsize, 'legend.fontsize': fontsize, 'xtick.labelsize': fontsize, 'ytick.labelsize': fontsize}
+# matplotlib.rcParams.update(params)
+# pot = 1
+# markers = ['o', '^', 's', 'v','>','<','1','2','3','8']
+# colors = ['k', 'r', 'steelblue','mediumseagreen','b','g','c','m','y','w']
 
 # # Data reading and splitting
 
-# In[73]:
+# In[2]:
 
 
 def avedata(file_name):
@@ -63,7 +59,7 @@ def avedata(file_name):
     return bindat
 
 
-# In[74]:
+# In[3]:
 
 
 pot = 1
@@ -79,7 +75,7 @@ K_real2SI=A2m*A2m*avaga*fs2s/(kCal2Joule)  #kapitza
 K_real2SIcond=kCal2Joule/(avaga*fs2s*A2m)  #conductivity
 
 
-# In[75]:
+# In[4]:
 
 
 def SmoothGrad(x_left, T_graL, x_mid, Tw, x_right, T_graR,x_leftfull,x_midfull,x_rightfull):
@@ -99,7 +95,7 @@ def SmoothGrad(x_left, T_graL, x_mid, Tw, x_right, T_graR,x_leftfull,x_midfull,x
     return L,M,R,Lfull,Mfull,Rfull
 
 
-# In[76]:
+# In[5]:
 
 
 def cutXT2(x_left, T_graL, x_mid, Tw, x_right, T_graR):
@@ -124,7 +120,7 @@ def cutXT2(x_left, T_graL, x_mid, Tw, x_right, T_graR):
     return x_left, T_graL, x_mid, Tw, x_right, T_graR
 
 
-# In[77]:
+# In[6]:
 
 
 def calcThermal(x_left, T_graL, x_mid, Tw, x_right, T_graR,Q_flux):
@@ -154,7 +150,7 @@ def calcThermal(x_left, T_graL, x_mid, Tw, x_right, T_graR,Q_flux):
     return k_graL,k_W,k_graR,G_L,G_R 
 
 
-# In[78]:
+# In[8]:
 
 
 diranl="/home/arjun/Documents/TUTORIALS_LAMMPS/ionic_liquuid/binary_mixtures/IL_NEMD_DT/IL_models/EMIM/emim-bf4-tfsi_airebo/NEMD"
@@ -332,7 +328,7 @@ for con in conrange:
             handlelength = 1.2, fontsize = 'large', borderaxespad = 0.7,ncol=1,frameon=True)
         axis[0].set_xlabel("z $(A^0)$",fontweight = 'bold',fontsize=12)
         axis[1].set_xlabel("z $(A^0)$",fontweight = 'bold',fontsize=12)
-        axis[1].set_ylim(0,10)
+        axis[1].set_ylim(0,4)
         axis[0].set_ylabel("Temperature $(k)$",fontweight = 'bold',fontsize=12)
         axis[1].set_ylabel("Mass density $(kg/m^3)$",fontweight = 'bold',fontsize=12)
         extent = axis[0].get_window_extent().transformed(figure.dpi_scale_trans.inverted())
@@ -350,7 +346,7 @@ np.savetxt('K_vs_molarity.dat',KvsM,header='Charge BF k_left k_right')
 
 # ## 1. TBR vs Surface Charge of Carbon atoms
 
-# In[81]:
+# In[ ]:
 
 
 fig, ax = plt.subplots()
@@ -373,7 +369,7 @@ for con in conrange:
 
 # ## 2. TBR vs Mixture Ratio
 
-# In[79]:
+# In[ ]:
 
 
 crange=[0.1,0.2,0.3,0.4,0.5,0.6]
