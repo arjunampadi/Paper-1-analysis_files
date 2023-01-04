@@ -150,13 +150,13 @@ def calcThermal(x_left, T_graL, x_mid, Tw, x_right, T_graR,Q_flux):
     return k_graL,k_W,k_graR,G_L,G_R 
 
 
-# In[8]:
+# In[7]:
 
 
 diranl="/home/arjun/Documents/TUTORIALS_LAMMPS/ionic_liquuid/binary_mixtures/IL_NEMD_DT/IL_models/EMIM/emim-bf4-tfsi_airebo/NEMD"
-conrange= [0,100,300,400]
+conrange= [100,300,400]
 trange= [350]
-crange=[0,0.1]
+crange=[0,0.1,0.2,0.3,0.4,0.5]
 iruns = [2]
 kap=[]
 denpeakL=[]
@@ -346,11 +346,11 @@ np.savetxt('K_vs_molarity.dat',KvsM,header='Charge BF k_left k_right')
 
 # ## 1. TBR vs Surface Charge of Carbon atoms
 
-# In[ ]:
+# In[11]:
 
 
 fig, ax = plt.subplots()
-conrange= [0,100,200,300,400]
+conrange= [100,300,400]
 for con in conrange:
     data = pd.read_csv("K_vs_charge.dat",sep='\s+',header=None)
     data = pd.DataFrame(data)
@@ -369,7 +369,7 @@ for con in conrange:
 
 # ## 2. TBR vs Mixture Ratio
 
-# In[ ]:
+# In[9]:
 
 
 crange=[0.1,0.2,0.3,0.4,0.5,0.6]
@@ -390,7 +390,7 @@ for c in crange:
 
 # ## 3. EDL Structure for different Surface Charge
 
-# In[ ]:
+# In[10]:
 
 
 import MDAnalysis
