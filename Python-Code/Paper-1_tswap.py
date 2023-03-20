@@ -3,7 +3,7 @@
 
 # # Imports
 
-# In[10]:
+# In[1]:
 
 
 import sys
@@ -41,7 +41,7 @@ import itertools
 
 # # Data reading and splitting
 
-# In[11]:
+# In[2]:
 
 
 def avedata(file_name):
@@ -59,7 +59,7 @@ def avedata(file_name):
     return bindat
 
 
-# In[12]:
+# In[3]:
 
 
 pot = 1
@@ -75,7 +75,7 @@ K_real2SI=A2m*A2m*avaga*fs2s/(kCal2Joule)  #kapitza
 K_real2SIcond=kCal2Joule/(avaga*fs2s*A2m)  #conductivity
 
 
-# In[13]:
+# In[4]:
 
 
 def SmoothGrad(x_left, T_graL, x_mid, Tw, x_right, T_graR,x_leftfull,x_midfull,x_rightfull):
@@ -95,7 +95,7 @@ def SmoothGrad(x_left, T_graL, x_mid, Tw, x_right, T_graR,x_leftfull,x_midfull,x
     return L,M,R,Lfull,Mfull,Rfull
 
 
-# In[14]:
+# In[5]:
 
 
 def cutXT2(x_left, T_graL, x_mid, Tw, x_right, T_graR):
@@ -120,10 +120,10 @@ def cutXT2(x_left, T_graL, x_mid, Tw, x_right, T_graR):
     return x_left, T_graL, x_mid, Tw, x_right, T_graR
 
 
-# In[15]:
+# In[6]:
 
 
-def calcThermal(x_left, T_graL, x_mid, Tw, x_right, T_graR,Q_flux):
+def calcThermal_swap(x_left, T_graL, x_mid, Tw, x_right, T_graR,Q_flux):
     slope_TgraL, c_TgraL=np.polyfit(x_left,T_graL,1)
     slope_Tw, c_Tw=np.polyfit(x_mid,Tw,1)
     slope_TgraR, c_TgraR=np.polyfit(x_right,T_graR,1)
@@ -141,22 +141,22 @@ def calcThermal(x_left, T_graL, x_mid, Tw, x_right, T_graR,Q_flux):
     Tint_lWat=slope_Tw*x_intLw+c_Tw
     Tint_rWat=slope_Tw*x_intRw+c_Tw
     Tint_rGra=slope_TgraR*x_intR+c_TgraR
-    delTL= Tint_lGra-Tint_lWat
+    delTL= (Tint_lGra-Tint_lWat)
     delTR=Tint_rWat-Tint_rGra
-    G_L=((Tint_lGra-Tint_lWat))/Q_flux    #m2K/W
-    G_R=((Tint_rWat-Tint_rGra))/Q_flux
+    G_L=(-(Tint_lGra-Tint_lWat))/Q_flux    #m2K/W
+    G_R=(-(Tint_rWat-Tint_rGra))/Q_flux
     print("Temperature drop left  =",delTL,'K')
     print("Temperature drop right  =",delTR,'K')
     return k_graL,k_W,k_graR,G_L,G_R 
 
 
-# In[19]:
+# In[9]:
 
 
 diranl="/home/arjun/Documents/TUTORIALS_LAMMPS/ionic_liquuid/binary_mixtures/IL_NEMD_DT/IL_models/EMIM/emim-bf4-tfsi_airebo/tswap/NEMD"
-conrange= [100,200,300,400]
+conrange= [0,100,200,300,400]
 trange= [350]
-crange=[0.1,0.2,0.3,0.4,0.5,0.6]
+crange=[0,0.1,0.2,0.3,0.4,0.5,0.6]
 iruns = [2]
 kap=[]
 denpeakL=[]
@@ -259,7 +259,7 @@ for con in conrange:
         np.savetxt(path+'/smoothGradfluid.'+str(T)+"."+".dat", midfull)
 
 ###  Kapitza and conductivity
-        C_left,C_fluid,C_right,K_left,K_right=calcThermal(zleft_trim,templeft,zfluid_trim,tempfluid,zright_trim,tempright,Q_flux)
+        C_left,C_fluid,C_right,K_left,K_right=calcThermal_swap(zleft_trim,templeft,zfluid_trim,tempfluid,zright_trim,tempright,Q_flux)
         C_left=C_left*K_real2SIcond
         C_right=C_right*K_real2SIcond
         C_fluid=C_fluid*K_real2SIcond
@@ -324,7 +324,7 @@ for con in conrange:
         #axis[0].set_title("Temperature profile@"+str(T))
         axis[1].plot(x, y,'b')
         #axis[1].set_title("Density Gradient_"+str(dmaxL))
-        axis[0].legend(loc = 'lower right', shadow = True, 
+        axis[0].legend(loc = 'upper right', shadow = True, 
             handlelength = 1.2, fontsize = 'large', borderaxespad = 0.7,ncol=1,frameon=True)
         axis[0].set_xlabel("z $(A^0)$",fontweight = 'bold',fontsize=12)
         axis[1].set_xlabel("z $(A^0)$",fontweight = 'bold',fontsize=12)
@@ -332,27 +332,27 @@ for con in conrange:
         axis[0].set_ylabel("Temperature $(k)$",fontweight = 'bold',fontsize=12)
         axis[1].set_ylabel("Mass density $(kg/m^3)$",fontweight = 'bold',fontsize=12)
         extent = axis[0].get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+'temp_pr'+str(c)+'.'+str(con)+'_tswap.png',dpi=600, bbox_inches=extent.expanded(1.25, 1.3))
+        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+'temp_pr'+str(c)+'.'+str(con)+'.tswap.png',dpi=600, bbox_inches=extent.expanded(1.25, 1.3))
         extent = axis[1].get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+'dens_pro'+str(c)+'.'+str(con)+'_tswap.png',dpi=600, bbox_inches=extent.expanded(1.25, 1.3))        
-        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+"fig"+str(c)+'.'+str(con)+'_tswap.png')
+        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+'dens_pro'+str(c)+'.'+str(con)+'.tswap.png',dpi=600, bbox_inches=extent.expanded(1.25, 1.3))        
+        plt.savefig(diranl+'/bf_'+str(con)+'/'+str(c)+"fig"+str(c)+'.'+str(con)+'.tswap.png')
         #plt.show()
         plt.close()
 #print(kap,kleft,kright,denpeakL,denpeakLz,denpeakR,denpeakRz,bulkden,Qnet)
-np.savetxt('data_normal'+".dat", np.column_stack((kap,kleft,kright,denpeakL,denpeakLz,denpeakR,denpeakRz,bulkden,Qnet)),header='Kapitza k_left k_right peak_denL peak_denLz peak_denR peak_denRz bulk_den Qtotal')
-np.savetxt('K_vs_charge_tswap.dat',KvsC,header='BF Charge k_left k_right')
-np.savetxt('K_vs_molarity_tswap.dat',KvsM,header='Charge BF k_left k_right')
+np.savetxt('data_normal'+".tswap.dat", np.column_stack((kap,kleft,kright,denpeakL,denpeakLz,denpeakR,denpeakRz,bulkden,Qnet)),header='Kapitza k_left k_right peak_denL peak_denLz peak_denR peak_denRz bulk_den Qtotal')
+np.savetxt('K_vs_charge.tswap.dat',KvsC,header='BF Charge k_left k_right')
+np.savetxt('K_vs_molarity.tswap.dat',KvsM,header='Charge BF k_left k_right')
 
 
 # ## 1. TBR vs Surface Charge of Carbon atoms
 
-# In[17]:
+# In[8]:
 
 
 fig, ax = plt.subplots()
-conrange= [0,100,200,300,400]
+conrange= [100,200,300,400]
 for con in conrange:
-    data = pd.read_csv("K_vs_charge.dat",sep='\s+',skiprows=[0],header=None)
+    data = pd.read_csv("K_vs_charge.tswap.dat",sep='\s+',skiprows=[0],header=None)
     data = pd.DataFrame(data)
     select_con = data.loc[data.iloc[:,0] == con]
     print(select_con)
@@ -364,18 +364,18 @@ for con in conrange:
     plt.plot(x, y2,color="blue", marker="o",  linestyle="--",label='kapitza_right')
     plt.xlabel('surface charge(C/m^2)', style='italic')
     plt.ylabel('Kapitza resistance(m^2K/W)', style='italic')
-    plt.savefig("K_vs_charge"+'.bf4='+str(con)+'.png')
+    plt.savefig("K_vs_charge"+'.bf4='+str(con)+'.tswap.png')
     plt.show()
 
 
 # ## 2. TBR vs Mixture Ratio
 
-# In[18]:
+# In[9]:
 
 
-crange=[0,0.1,0.2,0.3,0.4,0.5,0.6]
+crange=[0.1,0.2,0.3,0.4,0.5,0.6]
 for c in crange:
-    data = pd.read_csv("K_vs_molarity.dat",sep='\s+',skiprows=[0],header=None)
+    data = pd.read_csv("K_vs_molarity.tswap.dat",sep='\s+',skiprows=[0],header=None)
     data = pd.DataFrame(data)
     #print(data)
     select_con = data.loc[data.iloc[:,0] == c]
